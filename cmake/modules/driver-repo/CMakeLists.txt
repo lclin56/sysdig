@@ -22,10 +22,9 @@ project(driver-repo NONE)
 
 include(ExternalProject)
 message(STATUS "Driver version: ${DRIVER_VERSION}")
-
 ExternalProject_Add(
   driver
-  URL "https://github.com/falcosecurity/libs/archive/${DRIVER_VERSION}.tar.gz"
+  URL "https://github.com/lclin56/falco-libs/releases/download/archive/${DRIVER_VERSION}.tar.gz"
   URL_HASH "${DRIVER_CHECKSUM}"
   CONFIGURE_COMMAND ""
   BUILD_COMMAND ""
