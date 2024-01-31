@@ -1,0 +1,305 @@
+{
+    "sig_class": {
+        "01": "File drop, download, sharing, or replication",
+        "02": "System sensitive operation",
+        "03": "suspicious network connection",
+        "04": "Rootkit, cloaking",
+        "05": "Autostart or other system reconfiguration",
+        "06": "Anti-security,self-preservation",
+        "07": "Malformed, defective, or with known malware traits"
+    },
+    "sig_settings": {
+        "001": {
+            "score": 20,
+            "text": "Delete self",
+            "class": "01",
+            "severity": 1
+        },
+        "002": {
+            "score": 10,
+            "text": "Dropped new files",
+            "class": "01",
+            "severity": 1
+        },
+        "003": {
+            "score": 10,
+            "text": "Read self",
+            "class": "01",
+            "severity": 1
+        },
+        "100": {
+            "score": 5,
+            "text": "Obtain the limits of system resources",
+            "class": "02",
+            "severity": 1
+        },
+        "101": {
+            "score": 5,
+            "text": "Obtaining system information",
+            "class": "02",
+            "severity": 1
+        },
+        "102": {
+            "score": 5,
+            "text": "Potential generation of encryption seeds",
+            "class": "02",
+            "severity": 1
+        },
+        "103": {
+            "score": 10,
+            "text": "Using unlink delete files",
+            "class": "02",
+            "severity": 1
+        },
+        "104": {
+            "score": 20,
+            "text": "Start the shell command to perform remote download",
+            "class": "02",
+            "severity": 1
+        },
+        "105": {
+            "score": 10,
+            "text": "The sample self-starts via Shell",
+            "class": "02",
+            "severity": 1
+        },
+        "106": {
+            "score": 15,
+            "text": "Start shell command",
+            "class": "02",
+            "severity": 1
+        },
+        "107": {
+            "score": 10,
+            "text": "Modify file permissions",
+            "class": "02",
+            "severity": 1
+        },
+        "108": {
+            "score": 10,
+            "text": "View configuration and password",
+            "class": "02",
+            "severity": 1
+        },
+        "109": {
+            "score": 15,
+            "text": "Write executable files",
+            "class": "02",
+            "severity": 1
+        },
+        "110": {
+            "score": 20,
+            "text": "Modify system library files",
+            "class": "02",
+            "severity": 1
+        },
+        "111": {
+            "score": 10,
+            "text": "Operate Temporary Directory",
+            "class": "02",
+            "severity": 1
+        },
+        "112": {
+            "score": 10,
+            "text": "Operating System Services Directory",
+            "class": "02",
+            "severity": 1
+        },
+        "113": {
+            "score": 15,
+            "text": "Modify or REL kernel object",
+            "class": "02",
+            "severity": 1
+        },
+        "114": {
+            "score": 10,
+            "text": "Attempts to detect preload so information",
+            "class": "02",
+            "severity": 1
+        },
+        "115": {
+            "score": 20,
+            "text": "Injects shared library",
+            "class": "02",
+            "severity": 1
+        },
+        "116": {
+            "score": 10,
+            "text": "Local process scanning",
+            "class": "02",
+            "severity": 1
+        },
+        "117": {
+            "score": 20,
+            "text": "Bulk Scanning of Local Processes",
+            "class": "02",
+            "severity": 1
+        },
+        "118": {
+            "score": 50,
+            "text": "Remove known family-infected files",
+            "class": "02",
+            "severity": 3
+        },
+        "119": {
+            "score": 10,
+            "text": "Access system mount information.",
+            "class": "02",
+            "severity": 1
+        },
+        "120": {
+            "score": 5,
+            "text": "Account information related files were modified",
+            "class": "02",
+            "severity": 1
+        },
+        "121": {
+            "score": 5,
+            "text": "Unix shell configuration modification",
+            "class": "02",
+            "severity": 1
+        },
+        "122": {
+            "score": 10,
+            "text": "High CPU usage",
+            "class": "02",
+            "severity": 1
+        },
+        "123": {
+            "score": 20,
+            "text": "T1098 An attempt to do account manipulation using ssh ",
+            "class": "02",
+            "severity": 1
+        },
+        "124": {
+            "score": 20,
+            "text": "T1560 Archive and compression activity",
+            "class": "02",
+            "severity": 1
+        },
+        "125": {
+            "score": 20,
+            "text": "T1555 Detect directory traversal in sensitive file reads",
+            "class": "02",
+            "severity": 1
+        },
+        "200": {
+            "score": 10,
+            "text": "Suspicious network external connection behavior",
+            "class": "03",
+            "severity": 1
+        },
+        "201": {
+            "score": 10,
+            "text": "Suspicious network external data transfer behavior",
+            "class": "03",
+            "severity": 1
+        },
+        "202": {
+            "score": 5,
+            "text": "Inter-Process Communication",
+            "class": "03",
+            "severity": 1
+        },
+        "203": {
+            "score": 5,
+            "text": "Kernel mode communication",
+            "class": "03",
+            "severity": 1
+        },
+        "204": {
+            "score": 20,
+            "text": "Listens on port",
+            "class": "03",
+            "severity": 1
+        },
+        "205": {
+            "score": 5,
+            "text": "Suspicious port scanning behavior",
+            "class": "03",
+            "severity": 1
+        },
+        "206": {
+            "score": 20,
+            "text": "Large-Scale Suspicious Port Scanning Activity",
+            "class": "03",
+            "severity": 1
+        },
+        "207": {
+            "score": 20,
+            "text": "Large-Scale Suspicious IP Scanning Activity",
+            "class": "03",
+            "severity": 1
+        },
+        "300": {
+            "score": 10,
+            "text": "Change process name",
+            "class": "04",
+            "severity": 1
+        },
+        "301": {
+            "score": 5,
+            "text": "Operate Special Log Directory",
+            "class": "04",
+            "severity": 1
+        },
+        "400": {
+            "score": 20,
+            "text": "Add scheduled tasks to achieve auto-startup",
+            "class": "05",
+            "severity": 1
+        },
+        "500": {
+            "score": 20,
+            "text": "Attempts to detect virtual environment by keyword",
+            "class": "06",
+            "severity": 1
+        },
+        "501": {
+            "score": 20,
+            "text": "Detect virtualization environment",
+            "class": "06",
+            "severity": 1
+        },
+        "502": {
+            "score": 10,
+            "text": "Attempts to detect sandbox information",
+            "class": "06",
+            "severity": 1
+        },
+        "600": {
+            "score": 70,
+            "text": "Detected as known malware",
+            "class": "07",
+            "severity": 3
+        },
+        "601": {
+            "score": 50,
+            "text": "Detected as probable malware",
+            "class": "07",
+            "severity": 2
+        },
+        "602": {
+            "score": 70,
+            "text": "Drops known malware",
+            "class": "07",
+            "severity": 3
+        },
+        "603": {
+            "score": 50,
+            "text": "Drops probable malware",
+            "class": "07",
+            "severity": 2
+        }
+    },
+    "ignore_events":[
+        "time",
+        "switch",
+        "nanosleep",
+        "rt_sigaction",
+        "rt_sigprocmask",
+        "ipc",
+        "sched_yield",
+        "procinfo"
+    ]
+}
