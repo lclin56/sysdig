@@ -29,7 +29,7 @@ end
 -- Event parsing callback
 function on_event()
     if evt.field(ftype) == "getrlimit" and evt.field(fdir) == "<" then
-        local formatter = string.format("{\"sig_id\":\"100\",\"marks\":[%d]}", fevtnum)
+        local formatter = string.format("{\"sig_id\":\"2101\",\"marks\":[%d]}", evt.field(fevtnum))
         chisel.set_event_formatter(formatter)
         return true
     end

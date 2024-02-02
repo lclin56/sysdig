@@ -13,13 +13,20 @@
 #include <filesystem>
 #include <json/json.h>
 
+enum FBRuleType
+{
+    FB_Rule_Type_Lua = 0,
+    FB_Rule_Type_Yaml
+};
+
 struct FBRule
 {
     uint32_t id;
     uint32_t crc;
     uint64_t size;
+    uint8_t type;
     uint32_t build_time;
-    std::string lua_script;
+    std::string text;
 };
 
 struct FBPattern
@@ -52,12 +59,12 @@ uint32_t crc32(const std::vector<uint8_t> &data)
     return crc ^ 0xFFFFFFFF;
 }
 
-std::vector<uint8_t> encrypt_lua_script(const std::string &lua_script, uint8_t key = 123)
+std::vector<uint8_t> encrypt_text(const std::string &text, uint8_t key = 123)
 {
-    std::vector<uint8_t> encrypted_script(lua_script.size());
-    for (size_t i = 0; i < lua_script.size(); ++i)
+    std::vector<uint8_t> encrypted_script(text.size());
+    for (size_t i = 0; i < text.size(); ++i)
     {
-        encrypted_script[i] = lua_script[i] ^ key;
+        encrypted_script[i] = text[i] ^ key;
     }
 
     std::vector<uint8_t> reordered(encrypted_script.size());
@@ -71,7 +78,7 @@ std::vector<uint8_t> encrypt_lua_script(const std::string &lua_script, uint8_t k
     return reordered;
 }
 
-std::string decrypt_lua_script(const std::vector<uint8_t> &encrypted_script, uint8_t key = 123)
+std::string decrypt_text(const std::vector<uint8_t> &encrypted_script, uint8_t key = 123)
 {
     std::vector<uint8_t> decrypted_script(encrypted_script.size());
     const size_t step = key % 5 + 1;
@@ -219,6 +226,7 @@ bool load_pattern_file(const std::string &pattern_file, FBPattern *pattern)
         iss.read(reinterpret_cast<char *>(&rule.id), sizeof(rule.id));
         iss.read(reinterpret_cast<char *>(&rule.crc), sizeof(rule.crc));
         iss.read(reinterpret_cast<char *>(&rule.size), sizeof(rule.size));
+        iss.read(reinterpret_cast<char *>(&rule.type), sizeof(rule.type));
         iss.read(reinterpret_cast<char *>(&rule.build_time), sizeof(rule.build_time));
 
         std::vector<uint8_t> encrypted_script(rule.size);
@@ -229,7 +237,7 @@ bool load_pattern_file(const std::string &pattern_file, FBPattern *pattern)
             throw std::runtime_error("Rule data read failed");
         }
 
-        rule.lua_script = decrypt_lua_script(encrypted_script);
+        rule.text = decrypt_text(encrypted_script);
         pattern->rules.push_back(rule);
     }
 
@@ -252,7 +260,7 @@ void create_pattern_file(FBPattern &pattern, const std::string &filename)
     for (auto &rule : pattern.rules)
     {
         // Encrypt and write the Lua script
-        auto encrypted_script = encrypt_lua_script(rule.lua_script);
+        auto encrypted_script = encrypt_text(rule.text);
         rule.size = encrypted_script.size();
         rule.crc = crc32(encrypted_script);
 
@@ -260,6 +268,7 @@ void create_pattern_file(FBPattern &pattern, const std::string &filename)
         oss.write(reinterpret_cast<const char *>(&rule.id), sizeof(rule.id));
         oss.write(reinterpret_cast<const char *>(&rule.crc), sizeof(rule.crc));
         oss.write(reinterpret_cast<const char *>(&rule.size), sizeof(rule.size));
+        oss.write(reinterpret_cast<const char *>(&rule.type), sizeof(rule.type));
         oss.write(reinterpret_cast<const char *>(&rule.build_time), sizeof(rule.build_time));
         oss.write(reinterpret_cast<const char *>(encrypted_script.data()), encrypted_script.size());
     }
@@ -306,10 +315,10 @@ int main()
 	}
 
 	Json::CharReaderBuilder builder;
-	Json::Value rulesList;
+	Json::Value rules_list;
 	std::string errs;
 
-	if(!Json::parseFromStream(builder, rulesListFile, &rulesList, &errs))
+	if(!Json::parseFromStream(builder, rulesListFile, &rules_list, &errs))
 	{
 		std::cerr << "Failed to parse rules_list.json: " << errs << std::endl;
 		return 1;
@@ -323,24 +332,34 @@ int main()
 	strncpy(test_pattern.name, "TestPattern", sizeof(test_pattern.name));
 
 	// 读取 Lua 规则并添加到测试 pattern
-	const Json::Value &ruleArray = rulesList["rules"];
+	const Json::Value &rule_array = rules_list["rules"];
 
-	for(const auto &ruleItem : ruleArray)
+	for(const auto &rule_item : rule_array)
 	{
-		std::string rulePath = ruleItem["rule_path"].asString();
-	    int ruleId = ruleItem["rule_id"].asInt();
-		std::ifstream luaFile(rulePath);
+		std::string rule_path = rule_item["rule_path"].asString();
+	    uint32_t rule_id = rule_item["rule_id"].asInt();
+		std::ifstream rule_file(rule_path);
 
-		if(luaFile)
+        FBRuleType rule_type = FB_Rule_Type_Lua;
+        if(rule_item["rule_type"])
+        {
+            if(rule_item["rule_type"].asString() == "yaml")
+            {
+                rule_type = FB_Rule_Type_Yaml;
+            }
+        }
+
+
+		if(rule_file)
 		{
-			std::string luaScript((std::istreambuf_iterator<char>(luaFile)),
+			std::string rule_text((std::istreambuf_iterator<char>(rule_file)),
 					      std::istreambuf_iterator<char>());
-			FBRule rule{ruleId, 0, 0, 0, luaScript};
+			FBRule rule{rule_id, 0, 0, rule_type, 0, rule_text};
 			test_pattern.rules.push_back(rule);
 		}
 		else
 		{
-			std::cerr << "Failed to open Lua file: " << rulePath << std::endl;
+			std::cerr << "Failed to open Rule file: " << rule_path << std::endl;
 		}
 	}
 
@@ -371,10 +390,10 @@ int main()
     std::cout << "Loaded Pattern Name: " << loaded_pattern.name << std::endl;
     for (const auto &rule : loaded_pattern.rules)
     {
-        std::cout << "Rule ID: " << rule.id << ", Lua Script: " << rule.lua_script << std::endl;
+        std::cout << "Rule ID: " << rule.id << ", Lua Script: " << rule.text << std::endl;
     }
 
-    std::cout << test_pattern.sig_map_str << std::endl;
+    // std::cout << test_pattern.sig_map_str << std::endl;
 
     return 0;
 }

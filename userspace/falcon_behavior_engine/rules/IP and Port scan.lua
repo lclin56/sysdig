@@ -72,7 +72,7 @@ function on_event()
             for _ in pairs(ip_record) do ip_count = ip_count + 1 end
             if not is_207_trigger and ip_count > 10 then
                 is_207_trigger = true  -- Corrected trigger flag for unique IPs
-                local formatter = string.format("{\"sig_id\":\"207\",\"marks\":[%s]}", table.concat(ip_record[ip].evtnums, ", "))
+                local formatter = string.format("{\"sig_id\":\"958\",\"marks\":[%s]}", table.concat(ip_record[ip].evtnums, ", "))
                 chisel.set_event_formatter(formatter)
                 return true
             end
@@ -82,7 +82,7 @@ function on_event()
             for _ in pairs(ip_record[ip].ports) do port_count = port_count + 1 end
             if not is_206_trigger and port_count > 10 then
                 is_206_trigger = true  -- Corrected trigger flag for unique ports on a single IP
-                local formatter = string.format("{\"sig_id\":\"206\",\"marks\":[%s]}", table.concat(ip_record[ip].evtnums, ", "))
+                local formatter = string.format("{\"sig_id\":\"957\",\"marks\":[%s]}", table.concat(ip_record[ip].evtnums, ", "))
                 chisel.set_event_formatter(formatter)
                 return true
             end
@@ -92,15 +92,13 @@ function on_event()
 end
 
 function on_capture_end()
-    print("Capture ended. Summary of unique IP connections and ports:")
-
     for ip, info in pairs(ip_record) do
         local port_count = 0
         for _ in pairs(info.ports) do
             port_count = port_count + 1
         end
 
-        print(string.format("IP: %s, Unique Ports: %d, Event Numbers: [%s]", ip, port_count, table.concat(info.evtnums, ", ")))
+        -- print(string.format("IP: %s, Unique Ports: %d, Event Numbers: [%s]", ip, port_count, table.concat(info.evtnums, ", ")))
     end
 
     ip_record = {}

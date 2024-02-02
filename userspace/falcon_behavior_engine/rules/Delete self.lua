@@ -24,11 +24,12 @@ local ftype, fdir, fexepath, fargname, fargpath, fpid
 function on_init()
     ftype = chisel.request_field("evt.type")
     fdir = chisel.request_field("evt.dir")
-    fexepath = chisel.request_field("proc.exepath")
+    fexepath = chisel.request_field("proc.exe")
     fargname = chisel.request_field("evt.arg.name")
     fargpath = chisel.request_field("evt.arg.path")
     fpid = chisel.request_field("proc.pid")
     fevtnm = chisel.request_field("evt.num")
+    chisel.set_filter("evt.dir='<' and evt.type in ('unlink','unlinkat')")
     return true
 end
 
@@ -39,23 +40,19 @@ function on_event()
         return false
     end
 
-    if evt.field(fdir) == "<" then
-        if unlink_api_list[evt.field(ftype)] then
-            local path = evt.field(fargname)
-            local exepath = evt.field(fexepath)
-            if not path then
-                path = evt.field(fargpath)
-            end
+    local path = evt.field(fargname)
+    local exepath = evt.field(fexepath)
+    if not path then
+        path = evt.field(fargpath)
+    end
 
-            if path and exepath == path then
-                -- Mark this pid as having triggered the rule
-                sig_record[pid] = true
+    if path and exepath == path then
+        -- Mark this pid as having triggered the rule
+        sig_record[pid] = true
 
-                local formatter = string.format("{\"sig_id\":\"001\",\"marks\":[%d]}", evt.field(fevtnm))
-                chisel.set_event_formatter(formatter)
-                return true
-            end
-        end
+        local formatter = string.format("{\"sig_id\":\"451\",\"marks\":[%d]}", evt.field(fevtnm))
+        chisel.set_event_formatter(formatter)
+        return true
     end
     return false
 end

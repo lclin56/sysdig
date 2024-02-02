@@ -1,45 +1,69 @@
 {
-    "rules":
-    [
+    "rules": [
         {
-            "rule_id":0,
-            "rule_path":"rules/basic_rule.lua"
+            "rule_id": 0,
+            "rule_type": "lua",
+            "rule_path": "rules/basic_rule.lua"
         },
         {
-            "rule_id":1,
-            "rule_path":"rules/Delete self.lua" 
+            "rule_id": 1,
+            "rule_type": "lua",
+            "rule_path": "rules/Delete self.lua"
         },
         {
-            "rule_id":2,
-            "rule_path":"rules/Drop new file.lua" 
+            "rule_id": 2,
+            "rule_type": "lua",
+            "rule_path": "rules/Drop new file.lua"
         },
         {
-            "rule_id":3,
-            "rule_path":"rules/Read self.lua" 
+            "rule_id": 3,
+            "rule_type": "lua",
+            "rule_path": "rules/Read self.lua"
         },
         {
-            "rule_id":4,
-            "rule_path":"rules/Obtain system resource limits.lua" 
+            "rule_id": 4,
+            "rule_type": "lua",
+            "rule_path": "rules/Obtain system resource limits.lua"
         },
         {
-            "rule_id":5,
-            "rule_path":"rules/IP and Port scan.lua" 
+            "rule_id": 5,
+            "rule_type": "lua",
+            "rule_path": "rules/IP and Port scan.lua"
         },
         {
-            "rule_id":6,
-            "rule_path":"rules/Suspicious outbound connections.lua"
+            "rule_id": 6,
+            "rule_type": "lua",
+            "rule_path": "rules/Suspicious outbound connections.lua"
         },
         {
-            "rule_id":7,
-            "rule_path":"rules/Account Manipulation in SSH.lua "
+            "rule_id": 7,
+            "rule_type": "lua",
+            "rule_path": "rules/Account Manipulation in SSH.lua "
         },
         {
-            "rule_id":8,
-            "rule_path":"rules/Archive and compression activity.lua"
+            "rule_id": 8,
+            "rule_type": "lua",
+            "rule_path": "rules/Archive and compression activity.lua"
         },
         {
-            "rule_id":9,
-            "rule_path":"rules/Directory traversal monitored file read.lua"
+            "rule_id": 9,
+            "rule_type": "lua",
+            "rule_path": "rules/Directory traversal monitored file read.lua"
+        },
+        {
+            "rule_id": 10,
+            "rule_type": "yaml",
+            "rule_path": "rules/falco_rules.yaml"
+        },
+        {
+            "rule_id": 11,
+            "rule_type": "yaml",
+            "rule_path": "rules/falco_sandbox_rules.yaml"
+        },
+        {
+            "rule_id": 12,
+            "rule_type": "yaml",
+            "rule_path": "rules/custom_rules.yaml"
         }
     ]
 }

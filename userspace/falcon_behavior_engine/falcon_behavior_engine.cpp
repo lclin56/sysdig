@@ -19,6 +19,7 @@
 #include "chisel_utils.h"
 #include "chisel_fields_info.h"
 #include "zlib.h"
+#include "falco_engine.h"
 
 using std::cerr;
 using std::cout;
@@ -116,6 +117,15 @@ std::string FalconBehaviorEngine::scan(const std::string &file_path, const strin
         chisel->on_capture_start();
     }
 
+    falco_engine engine;
+    size_t source_idx = 0;
+    bool use_falco_engine = false;
+
+    if (load_yaml_rules(inspector, engine, source_idx) == 0)
+    {
+        use_falco_engine = true;
+    }
+
     std::cout << "-- Start capture" << std::endl;
 
     inspector.start_capture();
@@ -185,8 +195,24 @@ std::string FalconBehaviorEngine::scan(const std::string &file_path, const strin
                         continue;
                     }
 
-                    raw_sigs[ev->get_num()] = root;
                     // LOG_DEBUG(logger, "SIG: %s", res.c_str());
+                    raw_sigs[ev->get_num()] = root;
+                }
+            }
+
+            if (use_falco_engine)
+            {
+                auto result = engine.process_event(source_idx, ev, falco_common::rule_matching::ALL);
+                if (result)
+                {
+                    for (auto it = result->begin(); it < result->end(); it++)
+                    {
+                        sinsp_evt_formatter fmt(&inspector, it->format);
+                        std::string output;
+                        fmt.tostring(ev, output);
+                        LOG_DEBUG(logger, "EVT: %ld Rule: %s\n%s", ev->get_num(), it->rule.c_str(), raw_logs[ev->get_num()].c_str());
+                        // LOG_DEBUG(logger, "Rule: %s \n%s", it->rule.c_str(), output.c_str());
+                    }
                 }
             }
         }
@@ -241,8 +267,8 @@ bool FalconBehaviorEngine::load_pattern_file(const std::string &pattern_file, FB
         throw std::runtime_error("File opening failed");
     }
 
-    uint64_t rules_size, sig_map_size;
     // file.read(reinterpret_cast<char *>(&pattern), sizeof(FBPattern) - sizeof(pattern->rules));
+    uint64_t rules_size, sig_map_size;
     file.read(reinterpret_cast<char *>(&pattern->version), sizeof(pattern->version));
     file.read(reinterpret_cast<char *>(&pattern->crc), sizeof(pattern->crc));
     file.read(reinterpret_cast<char *>(&pattern->rule_num), sizeof(pattern->rule_num));
@@ -273,6 +299,7 @@ bool FalconBehaviorEngine::load_pattern_file(const std::string &pattern_file, FB
         iss.read(reinterpret_cast<char *>(&rule.id), sizeof(rule.id));
         iss.read(reinterpret_cast<char *>(&rule.crc), sizeof(rule.crc));
         iss.read(reinterpret_cast<char *>(&rule.size), sizeof(rule.size));
+        iss.read(reinterpret_cast<char *>(&rule.type), sizeof(rule.type));
         iss.read(reinterpret_cast<char *>(&rule.build_time), sizeof(rule.build_time));
 
         std::vector<uint8_t> encrypted_script(rule.size);
@@ -283,16 +310,17 @@ bool FalconBehaviorEngine::load_pattern_file(const std::string &pattern_file, FB
             throw std::runtime_error("Rule data read failed");
         }
 
-        rule.lua_script = decrypt_lua_script(encrypted_script);
+        rule.text = decrypt_rule_text(encrypted_script);
         pattern->rules.push_back(rule);
     }
 
     std::vector<uint8_t> decompressed_sig_map = decrypt_and_decompress(compressed_sig_map);
-    std::string sig_map_str = std::string(decompressed_sig_map.begin(), decompressed_sig_map.end());
+    string sig_map_str = std::string(decompressed_sig_map.begin(), decompressed_sig_map.end());
     if (parse_sig_map(sig_map_str, pattern->sig_class, pattern->sig_settings, pattern->ignore_events) < 0)
     {
         return false;
     }
+
     return true;
 }
 
@@ -329,7 +357,7 @@ int FalconBehaviorEngine::parse_sig_map(const std::string &json_string, std::map
     }
 
     Json::Value ignore_events_ = root["ignore_events"];
-    for (int i = 0; i < ignore_events_.size(); ++i)
+    for (int i = 0; i < int(ignore_events_.size()); ++i)
     {
         std::string element = ignore_events_[i].asString();
         ignore_events.push_back(element);
@@ -384,35 +412,35 @@ std::vector<uint8_t> FalconBehaviorEngine::decrypt_and_decompress(const std::vec
     return decompressed_data;
 }
 
-std::string FalconBehaviorEngine::decrypt_lua_script(const std::vector<uint8_t> &encrypted_script, uint8_t key)
+std::string FalconBehaviorEngine::decrypt_rule_text(const std::vector<uint8_t> &encrypted_text, uint8_t key)
 {
-    std::vector<uint8_t> decrypted_script(encrypted_script.size());
+    std::vector<uint8_t> decrypted_text(encrypted_text.size());
     const size_t step = key % 5 + 1;
 
-    for (size_t i = 0; i < encrypted_script.size(); ++i)
+    for (size_t i = 0; i < encrypted_text.size(); ++i)
     {
-        size_t new_pos = (i + encrypted_script.size() - step) % encrypted_script.size();
-        decrypted_script[new_pos] = encrypted_script[i];
+        size_t new_pos = (i + encrypted_text.size() - step) % encrypted_text.size();
+        decrypted_text[new_pos] = encrypted_text[i];
     }
 
-    for (size_t i = 0; i < decrypted_script.size(); ++i)
+    for (size_t i = 0; i < decrypted_text.size(); ++i)
     {
-        decrypted_script[i] = decrypted_script[i] ^ key;
+        decrypted_text[i] = decrypted_text[i] ^ key;
     }
 
-    return std::string(decrypted_script.begin(), decrypted_script.end());
+    return std::string(decrypted_text.begin(), decrypted_text.end());
 }
 
 int FalconBehaviorEngine::load_chisels(sinsp &inspector, vector<sinsp_chisel *> &chisels)
 {
     for (auto &rule : pattern->rules)
     {
-        if (rule.lua_script.empty())
+        if (rule.text.empty() || rule.type != FB_Rule_Type_Lua)
         {
             continue;
         }
 
-        sinsp_chisel *ch = new sinsp_chisel(&inspector, rule.lua_script, false);
+        sinsp_chisel *ch = new sinsp_chisel(&inspector, rule.text, false);
 
         // parse_chisel_args(ch, filter_factory, optind, argc, argv, &n_filterargs);
 
@@ -422,6 +450,66 @@ int FalconBehaviorEngine::load_chisels(sinsp &inspector, vector<sinsp_chisel *> 
     }
 
     return true;
+}
+
+int FalconBehaviorEngine::load_yaml_rules(sinsp &inspector, falco_engine &engine, size_t &source_idx)
+{
+    auto filter_factory = std::make_shared<sinsp_filter_factory>(&inspector);
+    auto formatter_factory = std::make_shared<sinsp_evt_formatter_factory>(&inspector);
+
+    falco_source syscall_source;
+    syscall_source.name = "syscall";
+    syscall_source.filter_factory = filter_factory;
+    syscall_source.formatter_factory = formatter_factory;
+
+    source_idx = engine.add_source(syscall_source.name, filter_factory, formatter_factory);
+    int ret = -1;
+    for (auto &rule : pattern->rules)
+    {
+        if (rule.text.empty() || rule.type != FB_Rule_Type_Yaml)
+        {
+            continue;
+        }
+        string name = std::to_string(rule.id);
+
+        falco::load_result::rules_contents_t rc = {{name, rule.text}};
+        try
+        {
+            auto load_result = engine.load_rules(rule.text, name);
+
+            if (!load_result->successful())
+            {
+                LOG_ERROR(logger, "Failed to load rules %s: %s", name.c_str(), load_result->as_string(true, rc).c_str());
+                continue;
+            }
+
+            if (load_result->has_warnings())
+            {
+                LOG_WARN(logger, "Warnings while loading rules from file %s: %s", filename.c_str(), load_result->as_string(true, rc).c_str());
+            }
+
+            engine.enable_rule("", true);
+            ret = 0;
+
+            LOG_DEBUG(logger, "Loaded rules %s", name.c_str());
+        }
+        catch (const std::exception &e)
+        {
+            LOG_ERROR(logger, "Error loading rules %d: %s", rule.id, e.what());
+        }
+    }
+
+    if (ret < 0)
+    {
+        LOG_ERROR(logger, "No YAML rules have been loaded.");
+        return ret;
+    }
+
+    engine.complete_rule_loading();
+
+    LOG_DEBUG(logger, "Successfully loaded all rules files.");
+
+    return ret;
 }
 
 sinsp_evt *FalconBehaviorEngine::get_event(sinsp &inspector, std::function<void(const std::string &)> handle_error)
@@ -452,7 +540,6 @@ sinsp_evt *FalconBehaviorEngine::get_event(sinsp &inspector, std::function<void(
 
 void FalconBehaviorEngine::parse_chisel_args(sinsp_chisel *ch, string args)
 {
-    uint32_t nargs = ch->get_n_args();
     uint32_t nreqargs = ch->get_n_required_args();
     if (nreqargs != 0)
     {
@@ -475,10 +562,15 @@ int FalconBehaviorEngine::format_evt(sinsp &inspector, sinsp_evt *evt, std::map<
     }
 
     map<string, string> args_map;
-    for (int i = 0; i < evt->get_num_params(); i++)
+    for (uint32_t i = 0; i < evt->get_num_params(); i++)
     {
         string name = evt->get_param_name(i);
         string value;
+
+        if (name == "cgroups")
+        {
+            continue;
+        }
 
         char fmt_str[32] = {0};
         if (name == "fd")
@@ -553,12 +645,15 @@ int FalconBehaviorEngine::format_evt(sinsp &inspector, sinsp_evt *evt, std::map<
     }
 
     Json::Value root;
-    root["pid"] = th->m_pid;
+    root["pid"] = th->m_vpid;
     root["process_name"] = th->get_comm();
     root["api"] = evt->get_name();
     root["args"] = args_s;
     root["return_code"] = return_code;
-    root["timestamp"] = evt->get_ts();
+    sinsp_evt_formatter fmt(&inspector, "%evt.time");
+    string ts_str;
+    fmt.tostring(evt, ts_str);
+    root["timestamp"] = ts_str;
     Json::FastWriter writer;
     evt_s = writer.write(root);
     return 0;
@@ -597,7 +692,6 @@ int FalconBehaviorEngine::format_report(std::map<uint64_t, std::string> &raw_log
         auto sig_set_it = pattern->sig_settings.find(sig_id);
         if (sig_set_it != pattern->sig_settings.end())
         {
-            Json::Value sig_res = Json::Value();
             auto class_it = pattern->sig_class.find(sig_set_it->second.class_id);
             if (class_it == pattern->sig_class.end())
             {
@@ -609,6 +703,7 @@ int FalconBehaviorEngine::format_report(std::map<uint64_t, std::string> &raw_log
             mark["sig_id"] = sig_id;
             mark["text"] = sig_set_it->second.text;
             mark["score"] = sig_set_it->second.score;
+            mark["severity"] = sig_set_it->second.severity;
 
             Json::Value logs_index = Json::Value();
             logs_index = Json::arrayValue;
@@ -627,18 +722,14 @@ int FalconBehaviorEngine::format_report(std::map<uint64_t, std::string> &raw_log
             }
             mark["logs_index"] = logs_index;
 
-            bool is_old_sig = false;
-            if (sigs_map.find(sig_set_it->second.class_id) != sigs_map.end())
-            {
-                sig_res = sigs_map[sig_set_it->second.class_id];
-                is_old_sig = true;
-            }
-            else
+            auto [it, inserted] = sigs_map.emplace(sig_set_it->second.class_id, Json::Value{});
+            Json::Value &sig_res = it->second;
+
+            if (inserted)
             {
                 sig_res["classid"] = sig_set_it->second.class_id;
                 sig_res["class"] = class_it->second;
                 sig_res["severity"] = 0;
-                sig_res["marks"] = Json::Value();
                 sig_res["marks"] = Json::arrayValue;
             }
 
@@ -648,9 +739,10 @@ int FalconBehaviorEngine::format_report(std::map<uint64_t, std::string> &raw_log
                 if (m["sig_id"] == sig_id)
                 {
                     is_old_mark = true;
+                    auto &logs_index_ = m["logs_index"];
                     for (auto &l : mark["logs_index"])
                     {
-                        m["logs_index"].append(l);
+                        logs_index_.append(l);
                     }
                 }
             }
@@ -659,11 +751,6 @@ int FalconBehaviorEngine::format_report(std::map<uint64_t, std::string> &raw_log
             {
                 sig_res["marks"].append(mark);
             }
-
-            if (!is_old_sig)
-            {
-                sigs_map[sig_set_it->second.class_id] = sig_res;
-            }
         }
         else
         {
@@ -671,11 +758,25 @@ int FalconBehaviorEngine::format_report(std::map<uint64_t, std::string> &raw_log
         }
     }
 
+    int score = 0;
     for (auto &sig : sigs_map)
     {
+        int severity = 0;
+        int mark_count = 0;
+        for (auto &mark : sig.second["marks"])
+        {
+            int m_severity = mark["severity"].asInt();
+            severity = m_severity > severity ? m_severity : severity;
+            score += mark["score"].asInt();
+            mark_count++;
+        }
+
+        sig.second["severity"] = severity;
         signatures.append(sig.second);
     }
+
     root["signatures"] = signatures;
+    root["risk_score"] = score;
 
     Json::FastWriter writer;
     string dynam_s = writer.write(root);

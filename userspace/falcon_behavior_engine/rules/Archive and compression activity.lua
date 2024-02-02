@@ -48,11 +48,11 @@ function on_event()
     if encryption_proc[proc_name] then
         -- Additional checks for specific tools and their command-line arguments
         if proc_name == "tar" and (string.find(cmdline, "%-czf") or string.find(cmdline, "%-cpf")) then
-            local formatter = string.format("{\"sig_id\":\"124\",\"marks\":[%d]}", evtnum)
+            local formatter = string.format("{\"sig_id\":\"2125\",\"marks\":[%d]}", evtnum)
             chisel.set_event_formatter(formatter)
             return true
         elseif (proc_name == "zip" or proc_name == "gzip" or proc_name == "bzip2") and evtdir == "<" then
-            local formatter = string.format("{\"sig_id\":\"124\",\"marks\":[%d]}", evtnum)
+            local formatter = string.format("{\"sig_id\":\"2125\",\"marks\":[%d]}", evtnum)
             chisel.set_event_formatter(formatter)
             return true
         end
@@ -63,5 +63,4 @@ end
 
 -- Optional: Callback function at the end of capture
 function on_capture_end()
-    print("Capture ended. Monitoring for archive and compression activity completed.")
 end

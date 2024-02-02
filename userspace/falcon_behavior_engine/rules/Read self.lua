@@ -5,12 +5,6 @@ description = [[
 short_description = "Read self"
 category = "suspicious"
 
-local read_api_list = {
-    ["read"] = true,
-    ["pread"] = true,
-    ["fread"] = true
-}
-
 local sig_record = {}  -- Record of processes that have triggered the rule
 
 -- Chisel argument list
@@ -21,10 +15,11 @@ local ftype, fdir, fexepath, fdname, fpid, fevtnum
 function on_init()
     ftype = chisel.request_field("evt.type")
     fdir = chisel.request_field("evt.dir")
-    fexepath = chisel.request_field("proc.exepath")
+    fexepath = chisel.request_field("proc.exe")
     fdname = chisel.request_field("fd.name")
     fpid = chisel.request_field("proc.pid")  -- Requesting process ID
     fevtnum = chisel.request_field("evt.num")  -- Requesting event number
+    chisel.set_filter("evt.type in ('read','readv','preadv')")
     return true
 end
 
@@ -35,17 +30,15 @@ function on_event()
         return false  -- Do not trigger the rule if this process has already done so
     end
 
-    if evt.field(fdir) == "<" and read_api_list[evt.field(ftype)] then
-        local filename = evt.field(fdname)
-        local exepath = evt.field(fexepath)
+    local filename = evt.field(fdname)
+    local exepath = evt.field(fexepath)
 
-        if filename and exepath == filename then
-            sig_record[pid] = true  -- Mark this process as having triggered the rule
-            local event_num = evt.field(fevtnum)  -- Retrieve the event number
-            local formatter = string.format("{\"sig_id\":\"003\",\"marks\":[%d]}", event_num)
-            chisel.set_event_formatter(formatter)
-            return true
-        end
+    if filename and exepath == filename then
+        sig_record[pid] = true  -- Mark this process as having triggered the rule
+        local event_num = evt.field(fevtnum)  -- Retrieve the event number
+        local formatter = string.format("{\"sig_id\":\"453\",\"marks\":[%d]}", event_num)
+        chisel.set_event_formatter(formatter)
+        return true
     end
     return false
 end

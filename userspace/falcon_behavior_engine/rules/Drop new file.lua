@@ -6,13 +6,6 @@ description = [[
 short_description = "Dropped new files"
 category = "suspicious"
 
-local file_write_api_list = {
-    ["open"] = true,
-    ["openat"] = true,
-    ["openat2"] = true,
-    ["creat"] = true
-}
-
 local sig_record = {}
 
 -- Chisel argument list
@@ -27,6 +20,7 @@ function on_init()
     fargflags = chisel.request_field("evt.arg.flags")
     fpid = chisel.request_field("proc.pid")
     fevtnum = chisel.request_field("evt.num")
+    chisel.set_filter("evt.dir='<' and evt.type in ('open','openat','openat2')")
     return true
 end
 
@@ -36,12 +30,12 @@ function on_event()
     local filename = evt.field(fargname)
     local flags = evt.field(fargflags)
 
-    if file_write_api_list[evt.field(ftype)] and evt.field(fdir) == "<" and filename and string.find(flags, "O_CREAT") then
+    if filename and flags then
         local record_key = pid .. ":" .. filename
-        if not sig_record[record_key] then
+        if string.find(flags, "O_CREAT") and not sig_record[record_key] then
             sig_record[record_key] = true
 
-            local formatter = string.format("{\"sig_id\":\"002\",\"maks\":[%d]}", evt.field(fevtnum))
+            local formatter = string.format("{\"sig_id\":\"452\",\"marks\":[%d]}", evt.field(fevtnum))
             chisel.set_event_formatter(formatter)
             return true
         end

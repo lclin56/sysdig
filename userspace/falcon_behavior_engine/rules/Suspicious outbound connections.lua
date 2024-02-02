@@ -79,7 +79,7 @@ function on_event()
         if ip and not is_local_ip(ip) and not is_filtered_ip(ip) and not monitored_ip_ports[dest_ip_port] then
             monitored_ip_ports[dest_ip_port] = true
             trigger_count = trigger_count + 1
-            local formatter = string.format("{\"sig_id\":\"200\",\"marks\":[%d]}", evtnum)
+            local formatter = string.format("{\"sig_id\":\"951\",\"marks\":[%d]}", evtnum)
             chisel.set_event_formatter(formatter)
             return true
         end

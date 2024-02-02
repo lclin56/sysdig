@@ -82,7 +82,7 @@ function on_event()
        (etc_dir(file_name) or user_ssh_directory(file_name) or string.sub(file_name, 1, 12) == "/root/.ssh/" or string.find(file_name, "id_rsa")) and
        directory_traversal(name_raw) and not shell_binaries[proc_name] then
         -- Setting event formatter with relevant information
-        local formatter = string.format("{\"sig_id\":\"125\",\"marks\":[%d]}", evtnum)
+        local formatter = string.format("{\"sig_id\":\"2126\",\"marks\":[%d]}", evtnum)
         chisel.set_event_formatter(formatter)
         return true
     end
@@ -92,5 +92,4 @@ end
 
 -- Optional: Callback function at the end of capture
 function on_capture_end()
-    print("Capture ended. Monitoring for directory traversal in sensitive file reads completed.")
 end

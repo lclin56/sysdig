@@ -69,7 +69,7 @@ function on_event()
             triggered_files[file_name] = true
 
             -- Alert message for detected account manipulation attempt
-            local formatter = string.format("{\"sig_id\":\"123\",\"marks\":[%d]}", evtnum)
+            local formatter = string.format("{\"sig_id\":\"2124\",\"marks\":[%d]}", evtnum)
             chisel.set_event_formatter(formatter)
             return true
         end
@@ -80,5 +80,4 @@ end
 
 -- Optional: Callback function at the end of capture
 function on_capture_end()
-    print("Capture ended. Monitoring for account manipulation in SSH completed.")
 end
