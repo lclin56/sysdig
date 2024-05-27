@@ -1,0 +1,719 @@
+{
+    "rules": [
+        {
+            "rule_id": 0,
+            "rule_type": "lua",
+            "rule_path": "rules/System file activity monitor.lua"
+        },
+        {
+            "rule_id": 1,
+            "rule_type": "lua",
+            "rule_path": "rules/System sensitive operation.lua"
+        },
+        {
+            "rule_id": 2,
+            "rule_type": "lua",
+            "rule_path": "rules/Network activity monitor.lua"
+        },
+        {
+            "rule_id": 10,
+            "rule_type": "yaml",
+            "rule_path": "rules/falco_rules.yaml"
+        },
+        {
+            "rule_id": 11,
+            "rule_type": "yaml",
+            "rule_path": "rules/falco_sandbox_rules.yaml"
+        }
+    ],
+    "sig_map": {
+        "sig_class": {
+            "4": "File drop, download, sharing, or replication",
+            "21": "System sensitive operation",
+            "9": "suspicious network connection",
+            "8": "Rootkit, cloaking",
+            "2": "Autostart or other system reconfiguration",
+            "1": "Anti-security,self-preservation",
+            "6": "Malformed, defective, or with known malware traits"
+        },
+        "sig_settings": {
+            "451": {
+                "score": 20,
+                "text": "Delete self",
+                "class": "4",
+                "severity": 1
+            },
+            "452": {
+                "score": 10,
+                "text": "Dropped new files",
+                "class": "4",
+                "severity": 1
+            },
+            "453": {
+                "score": 20,
+                "text": "Read self",
+                "class": "4",
+                "severity": 1
+            },
+            "454": {
+                "score": 20,
+                "text": "Drop and execute new binary in container",
+                "class": "4",
+                "severity": 2
+            },
+            "456": {
+                "score": 20,
+                "text": "Fileless execution via memfd_create",
+                "class": "4",
+                "severity": 2
+            },
+            "457": {
+                "score": 10,
+                "text": "Create Hidden Files or Directories",
+                "class": "4",
+                "severity": 1
+            },
+            "2101": {
+                "score": 5,
+                "text": "Obtain the limits of system resources",
+                "class": "21",
+                "severity": 1
+            },
+            "2102": {
+                "score": 5,
+                "text": "Obtaining system information",
+                "class": "21",
+                "severity": 1
+            },
+            "2103": {
+                "score": 5,
+                "text": "Potential generation of encryption seeds",
+                "class": "21",
+                "severity": 1
+            },
+            "2104": {
+                "score": 10,
+                "text": "Using unlink delete files",
+                "class": "21",
+                "severity": 1
+            },
+            "2105": {
+                "score": 20,
+                "text": "Start the shell command to perform remote download",
+                "class": "21",
+                "severity": 1
+            },
+            "2106": {
+                "score": 10,
+                "text": "The sample self-starts via Shell",
+                "class": "21",
+                "severity": 1
+            },
+            "2107": {
+                "score": 10,
+                "text": "Start shell command",
+                "class": "21",
+                "severity": 1
+            },
+            "2108": {
+                "score": 10,
+                "text": "Modify file permissions",
+                "class": "21",
+                "severity": 1
+            },
+            "2109": {
+                "score": 40,
+                "text": "View configuration and password",
+                "class": "21",
+                "severity": 2
+            },
+            "2110": {
+                "score": 40,
+                "text": "Write executable files",
+                "class": "21",
+                "severity": 2
+            },
+            "2111": {
+                "score": 40,
+                "text": "Modify system library files",
+                "class": "21",
+                "severity": 2
+            },
+            "2112": {
+                "score": 10,
+                "text": "Operate Temporary Directory",
+                "class": "21",
+                "severity": 1
+            },
+            "2113": {
+                "score": 20,
+                "text": "Operating System Services Directory",
+                "class": "21",
+                "severity": 1
+            },
+            "2114": {
+                "score": 40,
+                "text": "Modify or REL kernel object",
+                "class": "21",
+                "severity": 2
+            },
+            "2115": {
+                "score": 20,
+                "text": "Attempts to detect preload so information",
+                "class": "21",
+                "severity": 1
+            },
+            "2116": {
+                "score": 40,
+                "text": "Injects shared library",
+                "class": "21",
+                "severity": 2
+            },
+            "2117": {
+                "score": 40,
+                "text": "Local process scanning",
+                "class": "21",
+                "severity": 2
+            },
+            "2118": {
+                "score": 40,
+                "text": "Bulk Scanning of Local Processes",
+                "class": "21",
+                "severity": 2
+            },
+            "2119": {
+                "score": 50,
+                "text": "Remove known family-infected files",
+                "class": "21",
+                "severity": 3
+            },
+            "2120": {
+                "score": 10,
+                "text": "Access system mount information.",
+                "class": "21",
+                "severity": 1
+            },
+            "2121": {
+                "score": 10,
+                "text": "Account information related files were modified",
+                "class": "21",
+                "severity": 1
+            },
+            "2122": {
+                "score": 10,
+                "text": "Unix shell configuration modification",
+                "class": "21",
+                "severity": 1
+            },
+            "2123": {
+                "score": 40,
+                "text": "High CPU usage",
+                "class": "21",
+                "severity": 2
+            },
+            "2124": {
+                "score": 40,
+                "text": "An attempt to do account manipulation using ssh ",
+                "class": "21",
+                "severity": 2
+            },
+            "2125": {
+                "score": 10,
+                "text": "Archive and compression activity",
+                "class": "21",
+                "severity": 1
+            },
+            "2126": {
+                "score": 40,
+                "text": "Detect directory traversal in sensitive file reads",
+                "class": "21",
+                "severity": 2
+            },
+            "2127": {
+                "score": 40,
+                "text": "Modify binary dirs",
+                "class": "21",
+                "severity": 2
+            },
+            "2128": {
+                "score": 40,
+                "text": "Write below etc",
+                "class": "21",
+                "severity": 2
+            },
+            "2129": {
+                "score": 10,
+                "text": "System service discovery",
+                "class": "21",
+                "severity": 1
+            },
+            "2131": {
+                "score": 10,
+                "text": "Directory traversal monitored file read",
+                "class": "21",
+                "severity": 1
+            },
+            "2132": {
+                "score": 10,
+                "text": "Read sensitive file trusted after startup",
+                "class": "21",
+                "severity": 1
+            },
+            "2133": {
+                "score": 20,
+                "text": "Read sensitive file untrusted",
+                "class": "21",
+                "severity": 1
+            },
+            "2134": {
+                "score": 40,
+                "text": "Run shell untrusted",
+                "class": "21",
+                "severity": 2
+            },
+            "2135": {
+                "score": 40,
+                "text": "System user interactive",
+                "class": "21",
+                "severity": 2
+            },
+            "2136": {
+                "score": 40,
+                "text": "Terminal shell in container",
+                "class": "21",
+                "severity": 2
+            },
+            "2137": {
+                "score": 40,
+                "text": "Netcat Remote Code Execution in Container",
+                "class": "21",
+                "severity": 2
+            },
+            "2138": {
+                "score": 40,
+                "text": "Search Private Keys or Passwords",
+                "class": "21",
+                "severity": 2
+            },
+            "2139": {
+                "score": 40,
+                "text": "Clear Log Activities",
+                "class": "21",
+                "severity": 2
+            },
+            "2140": {
+                "score": 40,
+                "text": "Remove Bulk Data from Disk",
+                "class": "21",
+                "severity": 2
+            },
+            "2141": {
+                "score": 40,
+                "text": "Create Symlink Over Sensitive Files",
+                "class": "21",
+                "severity": 2
+            },
+            "2142": {
+                "score": 40,
+                "text": "Create Hardlink Over Sensitive Files",
+                "class": "21",
+                "severity": 2
+            },
+            "2143": {
+                "score": 40,
+                "text": "Linux Kernel Module Injection Detected",
+                "class": "21",
+                "severity": 2
+            },
+            "2144": {
+                "score": 40,
+                "text": "Debugfs Launched in Privileged Container",
+                "class": "21",
+                "severity": 2
+            },
+            "2145": {
+                "score": 40,
+                "text": "Detect release_agent File Container Escapes",
+                "class": "21",
+                "severity": 2
+            },
+            "2146": {
+                "score": 40,
+                "text": "PTRACE attached to process",
+                "class": "21",
+                "severity": 2
+            },
+            "2147": {
+                "score": 40,
+                "text": "PTRACE anti-debug attempt",
+                "class": "21",
+                "severity": 2
+            },
+            "2148": {
+                "score": 40,
+                "text": "Find AWS Credentials",
+                "class": "21",
+                "severity": 2
+            },
+            "2149": {
+                "score": 40,
+                "text": "Execution from /dev/shm",
+                "class": "21",
+                "severity": 2
+            },
+            "2150": {
+                "score": 40,
+                "text": "Update Package Repository",
+                "class": "21",
+                "severity": 2
+            },
+            "2151": {
+                "score": 20,
+                "text": "Write below root",
+                "class": "21",
+                "severity": 1
+            },
+            "2152": {
+                "score": 20,
+                "text": "Write below rpm database",
+                "class": "21",
+                "severity": 1
+            },
+            "2153": {
+                "score": 20,
+                "text": "Launch Disallowed Container",
+                "class": "21",
+                "severity": 1
+            },
+            "2154": {
+                "score": 40,
+                "text": "Sudo Potential Privilege Escalation",
+                "class": "21",
+                "severity": 2
+            },
+            "2155": {
+                "score": 40,
+                "text": "Unprivileged Delegation of Page Faults Handling to a Userspace Process",
+                "class": "21",
+                "severity": 2
+            },
+            "2156": {
+                "score": 40,
+                "text": "Polkit Local Privilege Escalation Vulnerability",
+                "class": "21",
+                "severity": 2
+            },
+            "2157": {
+                "score": 40,
+                "text": "Java Process Class File Download",
+                "class": "21",
+                "severity": 2
+            },
+            "2158": {
+                "score": 40,
+                "text": "Modify Container Entrypoint",
+                "class": "21",
+                "severity": 2
+            },
+            "2159": {
+                "score": 40,
+                "text": "BPF Program Not Profiled",
+                "class": "21",
+                "severity": 2
+            },
+            "2160": {
+                "score": 40,
+                "text": "Decoding Payload in Container",
+                "class": "21",
+                "severity": 1
+            },
+            "2161": {
+                "score": 40,
+                "text": "Basic Interactive Reconnaissance",
+                "class": "21",
+                "severity": 2
+            },
+            "2162": {
+                "score": 40,
+                "text": "Account manipulation in ssh",
+                "class": "21",
+                "severity": 2
+            },
+            "2163": {
+                "score": 40,
+                "text": "Read maps file of process",
+                "class": "21",
+                "severity": 2
+            },
+            "2164": {
+                "score": 40,
+                "text": "Permission and group members discovery",
+                "class": "21",
+                "severity": 2
+            },
+            "2165": {
+                "score": 40,
+                "text": "Detect data destruction activity",
+                "class": "21",
+                "severity": 2
+            },
+            "2167": {
+                "score": 10,
+                "text": "Detect peripheral device enumeration commands",
+                "class": "21",
+                "severity": 1
+            },
+            "2168": {
+                "score": 10,
+                "text": "Detect service disable using systemctl",
+                "class": "21",
+                "severity": 1
+            },
+            "2169": {
+                "score": 10,
+                "text": "List running services using systemctl",
+                "class": "21",
+                "severity": 1
+            },
+            "2170": {
+                "score": 10,
+                "text": "Suspicious Time and Date Command Execution",
+                "class": "21",
+                "severity": 1
+            },
+            "2171": {
+                "score": 20,
+                "text": "Attempt to access bash history file",
+                "class": "21",
+                "severity": 1
+            },
+            "2172": {
+                "score": 20,
+                "text": "Boot or logon autostart execution",
+                "class": "21",
+                "severity": 1
+            },
+            "2173": {
+                "score": 20,
+                "text": "Create account or add user",
+                "class": "21",
+                "severity": 1
+            },
+            "2174": {
+                "score": 20,
+                "text": "Create or modify system process",
+                "class": "21",
+                "severity": 1
+            },
+            "2175": {
+                "score": 20,
+                "text": "Credentials from password file",
+                "class": "21",
+                "severity": 1
+            },
+            "2176": {
+                "score": 20,
+                "text": "Modify authentication process",
+                "class": "21",
+                "severity": 1
+            },
+            "2177": {
+                "score": 20,
+                "text": "Process injection",
+                "class": "21",
+                "severity": 1
+            },
+            "2178": {
+                "score": 20,
+                "text": "Password policy discovery",
+                "class": "21",
+                "severity": 1
+            },
+            "951": {
+                "score": 10,
+                "text": "Suspicious network external connection behavior",
+                "class": "9",
+                "severity": 1
+            },
+            "952": {
+                "score": 10,
+                "text": "Suspicious network external data transfer behavior",
+                "class": "9",
+                "severity": 1
+            },
+            "953": {
+                "score": 5,
+                "text": "Inter-Process Communication",
+                "class": "9",
+                "severity": 1
+            },
+            "954": {
+                "score": 5,
+                "text": "Kernel mode communication",
+                "class": "9",
+                "severity": 1
+            },
+            "955": {
+                "score": 20,
+                "text": "Listens on port",
+                "class": "9",
+                "severity": 1
+            },
+            "956": {
+                "score": 5,
+                "text": "Suspicious port scanning behavior",
+                "class": "9",
+                "severity": 1
+            },
+            "957": {
+                "score": 40,
+                "text": "Large-Scale Suspicious Port Scanning Activity",
+                "class": "9",
+                "severity": 2
+            },
+            "958": {
+                "score": 5,
+                "text": "Suspicious IP scanning behavior",
+                "class": "9",
+                "severity": 1
+            },
+            "959": {
+                "score": 40,
+                "text": "Large-Scale Suspicious IP Scanning Activity",
+                "class": "9",
+                "severity": 2
+            },
+            "960": {
+                "score": 20,
+                "text": "Packet socket created in container",
+                "class": "9",
+                "severity": 2
+            },
+            "961": {
+                "score": 20,
+                "text": "Redirect STDOUT/STDIN to Network Connection in Container",
+                "class": "9",
+                "severity": 2
+            },
+            "962": {
+                "score": 20,
+                "text": "Disallowed SSH Connection Non Standard Port",
+                "class": "9",
+                "severity": 2
+            },
+            "963": {
+                "score": 20,
+                "text": "Unexpected inbound connection source",
+                "class": "9",
+                "severity": 2
+            },
+            "964": {
+                "score": 20,
+                "text": "Interpreted procs inbound network activity",
+                "class": "9",
+                "severity": 2
+            },
+            "965": {
+                "score": 20,
+                "text": "Interpreted procs outbound network activity",
+                "class": "9",
+                "severity": 2
+            },
+            "966": {
+                "score": 20,
+                "text": "Detect outbound connections to common miner pool ports",
+                "class": "9",
+                "severity": 2
+            },
+            "967": {
+                "score": 20,
+                "text": "Detect crypto miners using the Stratum protocol",
+                "class": "9",
+                "severity": 2
+            },
+            "968": {
+                "score": 10,
+                "text": "Suspicious Network Scanning Command",
+                "class": "9",
+                "severity": 1
+            },
+            "969": {
+                "score": 20,
+                "text": "Potential reconnaissance of network routing information", 
+                "class": "9",
+                "severity": 1
+            },
+            "841": {
+                "score": 10,
+                "text": "Change process name",
+                "class": "8",
+                "severity": 1
+            },
+            "842": {
+                "score": 5,
+                "text": "Operate Special Log Directory",
+                "class": "8",
+                "severity": 1
+            },
+            "261": {
+                "score": 20,
+                "text": "Add scheduled tasks to achieve auto-startup",
+                "class": "2",
+                "severity": 1
+            },
+            "171": {
+                "score": 20,
+                "text": "Attempts to detect virtual environment by keyword",
+                "class": "1",
+                "severity": 1
+            },
+            "172": {
+                "score": 20,
+                "text": "Detect virtualization environment",
+                "class": "1",
+                "severity": 1
+            },
+            "173": {
+                "score": 10,
+                "text": "Attempts to detect sandbox information",
+                "class": "1",
+                "severity": 1
+            },
+            "661": {
+                "score": 70,
+                "text": "Detected as known malware",
+                "class": "6",
+                "severity": 3
+            },
+            "662": {
+                "score": 50,
+                "text": "Detected as probable malware",
+                "class": "6",
+                "severity": 2
+            },
+            "663": {
+                "score": 70,
+                "text": "Drops known malware",
+                "class": "6",
+                "severity": 3
+            },
+            "664": {
+                "score": 50,
+                "text": "Drops probable malware",
+                "class": "6",
+                "severity": 2
+            }
+        },
+        "ignore_events": [
+            "time",
+            "switch",
+            "nanosleep",
+            "rt_sigaction",
+            "rt_sigprocmask",
+            "ipc",
+            "sched_yield",
+            "procinfo",
+            "syscall"
+        ]
+    }
+}

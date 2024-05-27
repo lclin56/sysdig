@@ -12,6 +12,7 @@
 #include <zlib.h>
 #include <filesystem>
 #include <json/json.h>
+#include <getopt.h>
 
 enum FBRuleType
 {
@@ -44,6 +45,8 @@ struct FBPattern
 
     FBPattern() { std::memset(name, 0, sizeof(name)); }
 };
+
+uint64_t token = 123;
 
 uint32_t crc32(const std::vector<uint8_t> &data)
 {
@@ -217,7 +220,7 @@ bool load_pattern_file(const std::string &pattern_file, FBPattern *pattern)
         throw std::runtime_error("File read failed");
     }
 
-    std::vector<uint8_t> decompressed_rules = decrypt_and_decompress(compressed_rules);
+    std::vector<uint8_t> decompressed_rules = decrypt_and_decompress(compressed_rules, token);
     std::istringstream iss(std::string(decompressed_rules.begin(), decompressed_rules.end()), std::ios::binary);
 
     for (size_t i = 0; i < pattern->rule_num; ++i)
@@ -237,11 +240,11 @@ bool load_pattern_file(const std::string &pattern_file, FBPattern *pattern)
             throw std::runtime_error("Rule data read failed");
         }
 
-        rule.text = decrypt_text(encrypted_script);
+        rule.text = decrypt_text(encrypted_script, token);
         pattern->rules.push_back(rule);
     }
 
-    std::vector<uint8_t> decompressed_sig_map = decrypt_and_decompress(compressed_sig_map);
+    std::vector<uint8_t> decompressed_sig_map = decrypt_and_decompress(compressed_sig_map, token);
     pattern->sig_map_str = std::string(decompressed_sig_map.begin(), decompressed_sig_map.end());
     return true;
 }
@@ -260,7 +263,7 @@ void create_pattern_file(FBPattern &pattern, const std::string &filename)
     for (auto &rule : pattern.rules)
     {
         // Encrypt and write the Lua script
-        auto encrypted_script = encrypt_text(rule.text);
+        auto encrypted_script = encrypt_text(rule.text, token);
         rule.size = encrypted_script.size();
         rule.crc = crc32(encrypted_script);
 
@@ -274,9 +277,9 @@ void create_pattern_file(FBPattern &pattern, const std::string &filename)
     }
 
     std::string rule_data = oss.str();
-    std::vector<uint8_t> compress_rules = compress_and_encrypt(rule_data);
+    std::vector<uint8_t> compress_rules = compress_and_encrypt(rule_data, token);
     pattern.rules_size = compress_rules.size();
-    std::vector<uint8_t> compress_sig_map = compress_and_encrypt(pattern.sig_map_str);
+    std::vector<uint8_t> compress_sig_map = compress_and_encrypt(pattern.sig_map_str, token);
     pattern.sig_map_size = compress_sig_map.size();
     std::vector<uint8_t> compress_data(compress_rules.begin(), compress_rules.end());
     compress_data.insert(compress_data.end(), compress_sig_map.begin(), compress_sig_map.end());
@@ -304,96 +307,161 @@ void create_pattern_file(FBPattern &pattern, const std::string &filename)
     }
 }
 
-int main()
+void printUsage()
 {
-	// 读取规则列表文件 rules_list.json
-	std::ifstream rulesListFile("rules/rules_list.json");
-	if(!rulesListFile)
-	{
-		std::cerr << "Failed to open rules_list.json" << std::endl;
-		return 1;
-	}
+    std::cout << "Usage: [options]\n"
+              << "Options:\n"
+              << "  -t, --token          Set the token string (default: FBE_TEST_KEY)\n"
+              << "  -c, --config         Path to the rule configuration file (default: ./rules_conf.json)\n"
+              << "  -v, --version        Pattern version (default: 0)\n"
+              << "  -p, --pattern        Path to the pattern file, this overrides the default pattern file name based on version\n"
+              << "  -h, --help           Display this help and exit\n";
+}
 
-	Json::CharReaderBuilder builder;
-	Json::Value rules_list;
-	std::string errs;
+int main(int argc, char *argv[])
+{
+    std::string token_s = "FBE_TEST_KEY";
+    std::string rule_conf_file = "./rules_conf.json";
+    unsigned int pattern_version = 0;        
+    std::string pattern_file = "./fbeptn";
 
-	if(!Json::parseFromStream(builder, rulesListFile, &rules_list, &errs))
-	{
-		std::cerr << "Failed to parse rules_list.json: " << errs << std::endl;
-		return 1;
-	}
+    const char *const short_opts = "ht:c:v:p:";
+    const option long_opts[] = {
+        {"help", no_argument, nullptr, 'h'},
+        {"token", required_argument, nullptr, 't'},
+        {"config", required_argument, nullptr, 'c'},
+        {"version", required_argument, nullptr, 'v'},
+        {"pattern", required_argument, nullptr, 'p'},
+        {nullptr, no_argument, nullptr, 0}};
 
-	// 创建测试 pattern
-	FBPattern test_pattern;
-	test_pattern.version = 1;
-	test_pattern.crc = 0; // 占位符，将在 create_pattern_file 中计算
-	test_pattern.build_time = 12345678;
-	strncpy(test_pattern.name, "TestPattern", sizeof(test_pattern.name));
+    while (true)
+    {
+        const auto opt = getopt_long(argc, argv, short_opts, long_opts, nullptr);
 
-	// 读取 Lua 规则并添加到测试 pattern
-	const Json::Value &rule_array = rules_list["rules"];
+        if (-1 == opt)
+            break;
 
-	for(const auto &rule_item : rule_array)
-	{
-		std::string rule_path = rule_item["rule_path"].asString();
-	    uint32_t rule_id = rule_item["rule_id"].asInt();
-		std::ifstream rule_file(rule_path);
+        switch (opt)
+        {
+        case 'h':
+            printUsage();
+            return 0;
+        case 't':
+            token_s = optarg;
+            break;
+        case 'c':
+            rule_conf_file = optarg;
+            break;
+        case 'v':
+            pattern_version = std::stoul(optarg);
+            break;
+        case 'p':
+            pattern_file = optarg; 
+            break;
+        case '?': 
+        default:
+            printUsage();
+            return 1;
+        }
+    }
+
+    if (!token_s.empty())
+    {
+        std::hash<std::string> hash_fn;
+        token = hash_fn(token_s);
+    }
+
+    pattern_file += "." + std::to_string(pattern_version); 
+
+    std::ifstream rules_conf_file(rule_conf_file);
+    if (!rules_conf_file)
+    {
+        std::cerr << "Failed to open " << rule_conf_file << std::endl;
+        return 1;
+    }
+
+    Json::CharReaderBuilder builder;
+    Json::Value root;
+    std::string errs;
+
+    if (!Json::parseFromStream(builder, rules_conf_file, &root, &errs))
+    {
+        std::cerr << "Failed to parse: " << rule_conf_file << errs << std::endl;
+        return 1;
+    }
+
+    auto now = std::chrono::system_clock::now();
+    auto duration = now.time_since_epoch();
+
+    // 创建测试 pattern
+    FBPattern pattern;
+    pattern.version = pattern_version;
+    pattern.crc = 0; // 占位符，将在 create_pattern_file 中计算
+    pattern.build_time = static_cast<uint32_t>(std::chrono::duration_cast<std::chrono::seconds>(duration).count());
+    std::filesystem::path p_path(pattern_file);
+    std::string p_name = p_path.filename();
+    strncpy(pattern.name, p_name.c_str(), sizeof(pattern.name));
+    pattern.name[sizeof(pattern.name) - 1] = '\0';
+
+    // 读取 Lua 规则并添加到 pattern
+    const Json::Value &rule_array = root["rules"];
+
+    for (const auto &rule_item : rule_array)
+    {
+        std::string rule_path = rule_item["rule_path"].asString();
+        uint32_t rule_id = rule_item["rule_id"].asInt();
+        std::ifstream rule_file(rule_path);
 
         FBRuleType rule_type = FB_Rule_Type_Lua;
-        if(rule_item["rule_type"])
+        if (rule_item["rule_type"])
         {
-            if(rule_item["rule_type"].asString() == "yaml")
+            if (rule_item["rule_type"].asString() == "yaml")
             {
                 rule_type = FB_Rule_Type_Yaml;
             }
         }
 
+        if (rule_file)
+        {
+            std::string rule_text((std::istreambuf_iterator<char>(rule_file)),
+                                  std::istreambuf_iterator<char>());
+            FBRule rule{rule_id, 0, 0, rule_type, 0, rule_text};
+            pattern.rules.push_back(rule);
+        }
+        else
+        {
+            std::cerr << "Failed to open Rule file: " << rule_path << std::endl;
+        }
+    }
 
-		if(rule_file)
-		{
-			std::string rule_text((std::istreambuf_iterator<char>(rule_file)),
-					      std::istreambuf_iterator<char>());
-			FBRule rule{rule_id, 0, 0, rule_type, 0, rule_text};
-			test_pattern.rules.push_back(rule);
-		}
-		else
-		{
-			std::cerr << "Failed to open Rule file: " << rule_path << std::endl;
-		}
-	}
+    // 更新 rule_num 和 size
+    pattern.rule_num = pattern.rules.size();
+    pattern.size = 0; // This will be calculated in create_pattern_file
 
-	// 更新 rule_num 和 size
-	test_pattern.rule_num = test_pattern.rules.size();
-	test_pattern.size = 0; // This will be calculated in create_pattern_file
-
-	std::ifstream sig_map_file("rules/sig_map.json");
-	if(sig_map_file)
-	{
-		std::string sig_map_str((std::istreambuf_iterator<char>(sig_map_file)),
-					std::istreambuf_iterator<char>());
-		test_pattern.sig_map_str = sig_map_str;
-	}
+    const Json::Value &sig_map = root["sig_map"];
+    Json::FastWriter writer;
+    std::string sig_map_str = writer.write(sig_map);
+    pattern.sig_map_str = sig_map_str;
 
     // 更新rule_num和size
-    test_pattern.rule_num = test_pattern.rules.size();
-    test_pattern.size = 0;
-    test_pattern.rules_size = 0;
-    test_pattern.sig_map_size = 0;
+    pattern.rule_num = pattern.rules.size();
+    pattern.size = 0;
+    pattern.rules_size = 0;
+    pattern.sig_map_size = 0;
 
     // 创建pattern文件
-    create_pattern_file(test_pattern, "fbe_ptn.bin");
+    create_pattern_file(pattern, pattern_file);
 
     // 加载pattern文件
     FBPattern loaded_pattern;
-    load_pattern_file("fbe_ptn.bin", &loaded_pattern);
+    load_pattern_file(pattern_file, &loaded_pattern);
     std::cout << "Loaded Pattern Name: " << loaded_pattern.name << std::endl;
     for (const auto &rule : loaded_pattern.rules)
     {
         std::cout << "Rule ID: " << rule.id << ", Lua Script: " << rule.text << std::endl;
     }
 
-    // std::cout << test_pattern.sig_map_str << std::endl;
+    // std::cout << pattern.sig_map_str << std::endl;
 
     return 0;
 }

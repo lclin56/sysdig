@@ -1,0 +1,724 @@
+{
+    "rules": [
+        {
+            "rule_id": 0,
+            "rule_type": "lua",
+            "rule_path": "rules/System file activity monitor.lua"
+        },
+        {
+            "rule_id": 1,
+            "rule_type": "lua",
+            "rule_path": "rules/System sensitive operation.lua"
+        },
+        {
+            "rule_id": 2,
+            "rule_type": "lua",
+            "rule_path": "rules/Network activity monitor.lua"
+        },
+        {
+            "rule_id": 10,
+            "rule_type": "yaml",
+            "rule_path": "rules/falco_rules.yaml"
+        },
+        {
+            "rule_id": 11,
+            "rule_type": "yaml",
+            "rule_path": "rules/falco_sandbox_rules.yaml"
+        },
+        {
+            "rule_id": 12,
+            "rule_type": "yaml",
+            "rule_path": "rules/custom_rules.yaml"
+        }
+    ],
+    "sig_map": {
+        "sig_class": {
+            "4": "File drop, download, sharing, or replication",
+            "21": "System sensitive operation",
+            "9": "suspicious network connection",
+            "8": "Rootkit, cloaking",
+            "2": "Autostart or other system reconfiguration",
+            "1": "Anti-security,self-preservation",
+            "6": "Malformed, defective, or with known malware traits"
+        },
+        "sig_settings": {
+            "451": {
+                "score": 20,
+                "text": "Delete self",
+                "class": "4",
+                "severity": 1
+            },
+            "452": {
+                "score": 10,
+                "text": "Dropped new files",
+                "class": "4",
+                "severity": 1
+            },
+            "453": {
+                "score": 10,
+                "text": "Read self",
+                "class": "4",
+                "severity": 1
+            },
+            "454": {
+                "score": 20,
+                "text": "TA0003 Drop and execute new binary in container",
+                "class": "4",
+                "severity": 2
+            },
+            "456": {
+                "score": 20,
+                "text": "T1620 Fileless execution via memfd_create",
+                "class": "4",
+                "severity": 2
+            },
+            "457": {
+                "score": 10,
+                "text": "T1564 Create Hidden Files or Directories",
+                "class": "4",
+                "severity": 1
+            },
+            "2101": {
+                "score": 5,
+                "text": "Obtain the limits of system resources",
+                "class": "21",
+                "severity": 1
+            },
+            "2102": {
+                "score": 5,
+                "text": "Obtaining system information",
+                "class": "21",
+                "severity": 1
+            },
+            "2103": {
+                "score": 5,
+                "text": "Potential generation of encryption seeds",
+                "class": "21",
+                "severity": 1
+            },
+            "2104": {
+                "score": 10,
+                "text": "Using unlink delete files",
+                "class": "21",
+                "severity": 1
+            },
+            "2105": {
+                "score": 20,
+                "text": "Start the shell command to perform remote download",
+                "class": "21",
+                "severity": 1
+            },
+            "2106": {
+                "score": 10,
+                "text": "The sample self-starts via Shell",
+                "class": "21",
+                "severity": 1
+            },
+            "2107": {
+                "score": 15,
+                "text": "Start shell command",
+                "class": "21",
+                "severity": 1
+            },
+            "2108": {
+                "score": 10,
+                "text": "Modify file permissions",
+                "class": "21",
+                "severity": 1
+            },
+            "2109": {
+                "score": 10,
+                "text": "View configuration and password",
+                "class": "21",
+                "severity": 1
+            },
+            "2110": {
+                "score": 15,
+                "text": "T1543 Write executable files",
+                "class": "21",
+                "severity": 1
+            },
+            "2111": {
+                "score": 20,
+                "text": "T1543 Modify system library files",
+                "class": "21",
+                "severity": 1
+            },
+            "2112": {
+                "score": 10,
+                "text": "Operate Temporary Directory",
+                "class": "21",
+                "severity": 1
+            },
+            "2113": {
+                "score": 10,
+                "text": "Operating System Services Directory",
+                "class": "21",
+                "severity": 1
+            },
+            "2114": {
+                "score": 15,
+                "text": "Modify or REL kernel object",
+                "class": "21",
+                "severity": 1
+            },
+            "2115": {
+                "score": 10,
+                "text": "Attempts to detect preload so information",
+                "class": "21",
+                "severity": 1
+            },
+            "2116": {
+                "score": 20,
+                "text": "Injects shared library",
+                "class": "21",
+                "severity": 1
+            },
+            "2117": {
+                "score": 10,
+                "text": "Local process scanning",
+                "class": "21",
+                "severity": 1
+            },
+            "2118": {
+                "score": 20,
+                "text": "Bulk Scanning of Local Processes",
+                "class": "21",
+                "severity": 1
+            },
+            "2119": {
+                "score": 50,
+                "text": "Remove known family-infected files",
+                "class": "21",
+                "severity": 3
+            },
+            "2120": {
+                "score": 10,
+                "text": "Access system mount information.",
+                "class": "21",
+                "severity": 1
+            },
+            "2121": {
+                "score": 5,
+                "text": "Account information related files were modified",
+                "class": "21",
+                "severity": 1
+            },
+            "2122": {
+                "score": 5,
+                "text": "Unix shell configuration modification",
+                "class": "21",
+                "severity": 1
+            },
+            "2123": {
+                "score": 10,
+                "text": "High CPU usage",
+                "class": "21",
+                "severity": 1
+            },
+            "2124": {
+                "score": 20,
+                "text": "T1098 An attempt to do account manipulation using ssh ",
+                "class": "21",
+                "severity": 1
+            },
+            "2125": {
+                "score": 10,
+                "text": "T1560 Archive and compression activity",
+                "class": "21",
+                "severity": 1
+            },
+            "2126": {
+                "score": 20,
+                "text": "T1555 Detect directory traversal in sensitive file reads",
+                "class": "21",
+                "severity": 1
+            },
+            "2127": {
+                "score": 20,
+                "text": "T1222.002 Modify binary dirs",
+                "class": "21",
+                "severity": 2
+            },
+            "2128": {
+                "score": 20,
+                "text": "T1098 Write below etc",
+                "class": "21",
+                "severity": 2
+            },
+            "2129": {
+                "score": 10,
+                "text": "T1007 System service discovery",
+                "class": "21",
+                "severity": 1
+            },
+            "2130": {
+                "score": 10,
+                "text": "T1059 Container Drift Detected",
+                "class": "21",
+                "severity": 1
+            },
+            "2131": {
+                "score": 10,
+                "text": "T1555 Directory traversal monitored file read",
+                "class": "21",
+                "severity": 1
+            },
+            "2132": {
+                "score": 10,
+                "text": "T1555 Read sensitive file trusted after startup",
+                "class": "21",
+                "severity": 1
+            },
+            "2133": {
+                "score": 10,
+                "text": "T1555 Read sensitive file untrusted",
+                "class": "21",
+                "severity": 1
+            },
+            "2134": {
+                "score": 20,
+                "text": "T1059.004 Run shell untrusted",
+                "class": "21",
+                "severity": 2
+            },
+            "2135": {
+                "score": 20,
+                "text": "T1059 System user interactive",
+                "class": "21",
+                "severity": 2
+            },
+            "2136": {
+                "score": 20,
+                "text": "T1059 Terminal shell in container",
+                "class": "21",
+                "severity": 2
+            },
+            "2137": {
+                "score": 20,
+                "text": "T1059 Netcat Remote Code Execution in Container",
+                "class": "21",
+                "severity": 2
+            },
+            "2138": {
+                "score": 20,
+                "text": "T1059 Search Private Keys or Passwords",
+                "class": "21",
+                "severity": 2
+            },
+            "2139": {
+                "score": 20,
+                "text": "T1070 Clear Log Activities",
+                "class": "21",
+                "severity": 2
+            },
+            "2140": {
+                "score": 20,
+                "text": "T1485 Remove Bulk Data from Disk",
+                "class": "21",
+                "severity": 2
+            },
+            "2141": {
+                "score": 20,
+                "text": "T1555 Create Symlink Over Sensitive Files",
+                "class": "21",
+                "severity": 2
+            },
+            "2142": {
+                "score": 20,
+                "text": "T1555 Create Hardlink Over Sensitive Files",
+                "class": "21",
+                "severity": 2
+            },
+            "2143": {
+                "score": 20,
+                "text": "TA0003 Linux Kernel Module Injection Detected",
+                "class": "21",
+                "severity": 2
+            },
+            "2144": {
+                "score": 20,
+                "text": "T1611 Debugfs Launched in Privileged Container",
+                "class": "21",
+                "severity": 2
+            },
+            "2145": {
+                "score": 20,
+                "text": "T1611 Detect release_agent File Container Escapes",
+                "class": "21",
+                "severity": 2
+            },
+            "2146": {
+                "score": 20,
+                "text": "T1055.008 PTRACE attached to process",
+                "class": "21",
+                "severity": 2
+            },
+            "2147": {
+                "score": 20,
+                "text": "T1622 PTRACE anti-debug attempt",
+                "class": "21",
+                "severity": 2
+            },
+            "2148": {
+                "score": 20,
+                "text": "T1552 Find AWS Credentials",
+                "class": "21",
+                "severity": 2
+            },
+            "2149": {
+                "score": 20,
+                "text": "T1059.004 Execution from /dev/shm",
+                "class": "21",
+                "severity": 2
+            },
+            "2150": {
+                "score": 20,
+                "text": "T1072 Update Package Repository",
+                "class": "21",
+                "severity": 2
+            },
+            "2151": {
+                "score": 20,
+                "text": "TA0003 Write below root",
+                "class": "21",
+                "severity": 2
+            },
+            "2152": {
+                "score": 20,
+                "text": "T1072 Write below rpm database",
+                "class": "21",
+                "severity": 2
+            },
+            "2153": {
+                "score": 20,
+                "text": "T1610 Launch Disallowed Container",
+                "class": "21",
+                "severity": 1
+            },
+            "2154": {
+                "score": 20,
+                "text": "T1548.003 Sudo Potential Privilege Escalation",
+                "class": "21",
+                "severity": 2
+            },
+            "2155": {
+                "score": 20,
+                "text": "TA0005 Unprivileged Delegation of Page Faults Handling to a Userspace Process",
+                "class": "21",
+                "severity": 2
+            },
+            "2156": {
+                "score": 20,
+                "text": "TA0004 Polkit Local Privilege Escalation Vulnerability",
+                "class": "21",
+                "severity": 2
+            },
+            "2157": {
+                "score": 20,
+                "text": "T1190 Java Process Class File Download",
+                "class": "21",
+                "severity": 2
+            },
+            "2158": {
+                "score": 20,
+                "text": "T1611 Modify Container Entrypoint",
+                "class": "21",
+                "severity": 2
+            },
+            "2159": {
+                "score": 20,
+                "text": "TA0003 BPF Program Not Profiled",
+                "class": "21",
+                "severity": 2
+            },
+            "2160": {
+                "score": 20,
+                "text": "T1132 Decoding Payload in Container",
+                "class": "21",
+                "severity": 2
+            },
+            "2161": {
+                "score": 20,
+                "text": "T1132 Basic Interactive Reconnaissance",
+                "class": "21",
+                "severity": 2
+            },
+            "2162": {
+                "score": 20,
+                "text": "T1098 Account manipulation in ssh",
+                "class": "21",
+                "severity": 2
+            },
+            "2163": {
+                "score": 20,
+                "text": "T1003 Read maps file of process",
+                "class": "21",
+                "severity": 2
+            },
+            "2164": {
+                "score": 20,
+                "text": "T1069 Permission and group members discovery",
+                "class": "21",
+                "severity": 2
+            },
+            "2165": {
+                "score": 20,
+                "text": "T1485 Detect data destruction activity",
+                "class": "21",
+                "severity": 2
+            },
+            "2167": {
+                "score": 10,
+                "text": "T1120 Detect peripheral device enumeration commands",
+                "class": "21",
+                "severity": 1
+            },
+            "2168": {
+                "score": 10,
+                "text": "T1489 Detect service disable using systemctl",
+                "class": "21",
+                "severity": 1
+            },
+            "2169": {
+                "score": 10,
+                "text": "List running services using systemctl",
+                "class": "21",
+                "severity": 1
+            },
+            "2170": {
+                "score": 10,
+                "text": "T1124 Suspicious Time and Date Command Execution",
+                "class": "21",
+                "severity": 1
+            },
+            "2171": {
+                "score": 20,
+                "text": "T1552 Attempt to access bash history file",
+                "class": "21",
+                "severity": 1
+            },
+            "2172": {
+                "score": 20,
+                "text": "T1547 Boot or logon autostart execution",
+                "class": "21",
+                "severity": 1
+            },
+            "2173": {
+                "score": 20,
+                "text": "T1136 Create account or add user",
+                "class": "21",
+                "severity": 1
+            },
+            "2174": {
+                "score": 20,
+                "text": "T1543 Create or modify system process",
+                "class": "21",
+                "severity": 1
+            },
+            "2175": {
+                "score": 20,
+                "text": "T1555 Credentials from password file",
+                "class": "21",
+                "severity": 1
+            },
+            "2176": {
+                "score": 20,
+                "text": "T1556 Modify authentication process",
+                "class": "21",
+                "severity": 1
+            },
+            "2177": {
+                "score": 20,
+                "text": "T1055 Process injection",
+                "class": "21",
+                "severity": 1
+            },
+            "2178": {
+                "score": 20,
+                "text": "T1055 Password policy discovery",
+                "class": "21",
+                "severity": 1
+            },
+            "951": {
+                "score": 10,
+                "text": "Suspicious network external connection behavior",
+                "class": "9",
+                "severity": 1
+            },
+            "952": {
+                "score": 10,
+                "text": "Suspicious network external data transfer behavior",
+                "class": "9",
+                "severity": 1
+            },
+            "953": {
+                "score": 5,
+                "text": "Inter-Process Communication",
+                "class": "9",
+                "severity": 1
+            },
+            "954": {
+                "score": 5,
+                "text": "Kernel mode communication",
+                "class": "9",
+                "severity": 1
+            },
+            "955": {
+                "score": 20,
+                "text": "Listens on port",
+                "class": "9",
+                "severity": 1
+            },
+            "956": {
+                "score": 5,
+                "text": "Suspicious port scanning behavior",
+                "class": "9",
+                "severity": 1
+            },
+            "957": {
+                "score": 20,
+                "text": "Large-Scale Suspicious Port Scanning Activity",
+                "class": "9",
+                "severity": 1
+            },
+            "958": {
+                "score": 5,
+                "text": "Suspicious IP scanning behavior",
+                "class": "9",
+                "severity": 1
+            },
+            "959": {
+                "score": 20,
+                "text": "Large-Scale Suspicious IP Scanning Activity",
+                "class": "9",
+                "severity": 1
+            },
+            "960": {
+                "score": 20,
+                "text": "T1557.002 Packet socket created in container",
+                "class": "9",
+                "severity": 2
+            },
+            "961": {
+                "score": 20,
+                "text": "T1059 Redirect STDOUT/STDIN to Network Connection in Container",
+                "class": "9",
+                "severity": 2
+            },
+            "962": {
+                "score": 20,
+                "text": "T1059 Disallowed SSH Connection Non Standard Port",
+                "class": "9",
+                "severity": 2
+            },
+            "963": {
+                "score": 20,
+                "text": "TA0011 Unexpected inbound connection source",
+                "class": "9",
+                "severity": 2
+            },
+            "964": {
+                "score": 20,
+                "text": "TA0011 Interpreted procs inbound network activity",
+                "class": "9",
+                "severity": 2
+            },
+            "965": {
+                "score": 20,
+                "text": "TA0011 Interpreted procs outbound network activity",
+                "class": "9",
+                "severity": 2
+            },
+            "966": {
+                "score": 20,
+                "text": "T1496 Detect outbound connections to common miner pool ports",
+                "class": "9",
+                "severity": 2
+            },
+            "967": {
+                "score": 20,
+                "text": "T1496 Detect crypto miners using the Stratum protocol",
+                "class": "9",
+                "severity": 2
+            },
+            "968": {
+                "score": 10,
+                "text": "T1018 Suspicious Network Scanning Command",
+                "class": "9",
+                "severity": 1
+            },
+            "841": {
+                "score": 10,
+                "text": "Change process name",
+                "class": "8",
+                "severity": 1
+            },
+            "842": {
+                "score": 5,
+                "text": "Operate Special Log Directory",
+                "class": "8",
+                "severity": 1
+            },
+            "261": {
+                "score": 20,
+                "text": "Add scheduled tasks to achieve auto-startup",
+                "class": "2",
+                "severity": 1
+            },
+            "171": {
+                "score": 20,
+                "text": "Attempts to detect virtual environment by keyword",
+                "class": "1",
+                "severity": 1
+            },
+            "172": {
+                "score": 20,
+                "text": "Detect virtualization environment",
+                "class": "1",
+                "severity": 1
+            },
+            "173": {
+                "score": 10,
+                "text": "Attempts to detect sandbox information",
+                "class": "1",
+                "severity": 1
+            },
+            "661": {
+                "score": 70,
+                "text": "Detected as known malware",
+                "class": "6",
+                "severity": 3
+            },
+            "662": {
+                "score": 50,
+                "text": "Detected as probable malware",
+                "class": "6",
+                "severity": 2
+            },
+            "663": {
+                "score": 70,
+                "text": "Drops known malware",
+                "class": "6",
+                "severity": 3
+            },
+            "664": {
+                "score": 50,
+                "text": "Drops probable malware",
+                "class": "6",
+                "severity": 2
+            }
+        },
+        "ignore_events": [
+            "time",
+            "switch",
+            "nanosleep",
+            "rt_sigaction",
+            "rt_sigprocmask",
+            "ipc",
+            "sched_yield",
+            "procinfo",
+            "syscall"
+        ]
+    }
+}

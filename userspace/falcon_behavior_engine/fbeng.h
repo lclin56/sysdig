@@ -1,5 +1,5 @@
-#ifndef FALCON_BEHAVIOR_ENGINE_H
-#define FALCON_BEHAVIOR_ENGINE_H
+#ifndef FB_ENG_H
+#define FB_ENG_H
 #include <string>
 #include <vector>
 #include <cstring>
@@ -14,6 +14,11 @@ namespace Json
 struct FBConf
 {
 	std::string pattern_path;
+	std::string temp_dir;
+	std::string token;
+	int log_mode;
+	int log_level;
+	void* log_callback;
 };
 
 enum FBRuleType
@@ -61,35 +66,48 @@ struct sinsp;
 struct sinsp_evt;
 struct sinsp_chisel;
 struct falco_engine;
+struct ArgsCatchInfo;
+struct EventFmtInfo;
 
-class FalconBehaviorEngine
+typedef void (*LogCxxCallback)(const char *log);
+
+class FBEngine
 {
 public:
-	FalconBehaviorEngine();
-	~FalconBehaviorEngine();
+	FBEngine();
 
-	int init(const FBConf &conf);
+	int init(FBConf &conf);
 
-	int load_pattern(const std::string &patternFile);
+	~FBEngine();
 
-	std::string scan(const std::string &file_path, const std::string &filter_string, int timeout = 600, size_t max_events = 1000000);
+	std::string scan(const std::string &scap_file, const std::string &evt_log_file = "./evt_log.json", const std::string &filter_string = std::string(), int timeout = 600, size_t max_events = 1000000);
+	
+	std::string rscan(const std::string &scap_file, const std::string rule, bool is_file = true, const std::string &filter_string = std::string(), int timeout = 600, size_t max_events = 1000000);
 
-	void uninit();
+	int cal_dynamic_score(const std::string &signatures);
+
+	int set_temp_dir(std::string dir);
+
+	static uint32_t get_version();
+
+	static std::string get_version_str();
+
+    uint32_t get_pattern_version();
 
 private:
 	FBPattern *pattern;
+	std::string temp_dir;
+	uint64_t token;
 
-	std::function<void(sinsp &, sinsp_evt *)> dump;
-	const uint8_t g_backoff_timeout_secs = 2;
-	bool enable_glogger = false;
-	std::string filter_string = "";
 	bool interrupted = false;
 
-	std::string default_output;
-	std::string process_output;
-	std::string net_output;
 	void *logger;
 
+	void uninit();
+
+	int load_pattern(const std::string &patternFile);
+
+	bool ensure_dir_exists(std::string &dir);
 	int unload_pattern();
 	bool load_pattern_file(const std::string &patternFile, FBPattern *pattern);
 	int parse_sig_map(const std::string &json_string, std::map<std::string, std::string> &sig_class_map, std::map<std::string, FBSig> &sig_settings_map, std::vector<std::string> &ignore_events);
@@ -100,8 +118,8 @@ private:
 	sinsp_evt *get_event(sinsp &inspector, std::function<void(const std::string &)> handle_error);
 	int load_chisels(sinsp &inspector, std::vector<sinsp_chisel *> &chisels);
 	int load_yaml_rules(sinsp &inspector, falco_engine &engine, size_t &source_idx);
-	void parse_chisel_args(sinsp_chisel *ch, std::string args);
-	int format_evt(sinsp &inspector, sinsp_evt *evt, std::map<uint64_t, std::map<std::string, std::string>> &args_catch, std::string &evt_s);
-	int format_report(std::map<uint64_t, std::string> &raw_logs, std::map<uint64_t, Json::Value> &raw_sigs, std::string &report_s);
+	int format_evt(sinsp &inspector, sinsp_evt *evt, std::map<uint64_t, ArgsCatchInfo> &args_catch, EventFmtInfo &evt_fmt);
+	std::string format_report(std::map<uint64_t, uint64_t> &pre_evt_pool, const std::string &log_path, const std::string &report_path, const std::map<uint64_t, Json::Value> &raw_sigs);
+	std::string get_random_str(int length);
 };
-#endif
+#endif // FB_ENG_H

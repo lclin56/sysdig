@@ -15,24 +15,37 @@ include_directories(
 )
 
 set(SOURCE_FILES
-    falcon_behavior_engine.cpp
+    fbeng.cpp
+    ifbeng.cpp
+    logcxx.cpp
+    main.cpp
 )
 
 set(CREATE_PATTERN_SOURCE_FILES
     create_pattern.cpp
 )
 
-add_executable(falcon_behavior_engine ${SOURCE_FILES})
+add_executable(fbeng ${SOURCE_FILES})
+add_library(libfbeng SHARED ${SOURCE_FILES})
 add_executable(create_pattern ${CREATE_PATTERN_SOURCE_FILES})
 
 if(USE_BUNDLED_DEPS)
-    add_dependencies(falcon_behavior_engine njson)
-    add_dependencies(falcon_behavior_engine yaml-cpp)
+    add_dependencies(fbeng njson yaml-cpp)
+    add_dependencies(libfbeng njson yaml-cpp)
     add_dependencies(create_pattern zlib)
 endif()
 
 target_include_directories(
-    falcon_behavior_engine
+    fbeng
+    PUBLIC
+    ${LIBSCAP_INCLUDE_DIRS}
+    ${LIBSINSP_INCLUDE_DIRS}
+    ${YAMLCPP_INCLUDE_DIR}
+    ${NJSON_INCLUDE_DIR}
+)
+
+target_include_directories(
+    libfbeng
     PUBLIC
     ${LIBSCAP_INCLUDE_DIRS}
     ${LIBSINSP_INCLUDE_DIRS}
@@ -50,54 +63,89 @@ target_include_directories(
 if(NOT WIN32)
     include_directories(${PROJECT_BINARY_DIR}/driver/src)
 
-    target_link_libraries(falcon_behavior_engine
+    target_link_libraries(fbeng
         falco_engine
         sinsp
         ${YAMLCPP_LIB}
     )
 
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g")
+    # target_link_options(fbeng PRIVATE 
+    #     -static)
+
+    target_link_libraries(libfbeng
+        falco_engine
+        sinsp
+        ${YAMLCPP_LIB}
+        -static-libgcc
+        -static-libstdc++
+    )
+
+    set_target_properties(libfbeng PROPERTIES 
+        OUTPUT_NAME "fbeng")
+    
+    # set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g")
+
+    # target_link_options(libfbeng PRIVATE 
+    #     -static)
 
     target_link_libraries(create_pattern
         ${JSONCPP_LIB}
         ${ZLIB_LIB}
     )
 
-    install(TARGETS falcon_behavior_engine
-        DESTINATION bin COMPONENT "${SYSDIG_COMPONENT_NAME}"
+    install(TARGETS fbeng
+        DESTINATION bin 
+        COMPONENT "${SYSDIG_COMPONENT_NAME}"
+    )
+
+    install(TARGETS libfbeng
+        LIBRARY DESTINATION lib
+        COMPONENT "${SYSDIG_COMPONENT_NAME}"
     )
 
 else()
     include(luajit)
 
-    target_link_libraries(falcon_behavior_engine
+    target_link_libraries(fbeng
         falco_engine
         sinsp
         "${YAMLCPP_LIB}"
-    )
-
-    target_link_libraries(falcon_behavior_engine
         odbc32.lib
         odbccp32.lib
         Netapi32.lib
         Iphlpapi.lib
     )
 
-    add_custom_command(TARGET falcon_behavior_engine POST_BUILD
+    target_link_libraries(libfbeng
+        falco_engine
+        sinsp
+        "${YAMLCPP_LIB}"
+        odbc32.lib
+        odbccp32.lib
+        Netapi32.lib
+        Iphlpapi.lib
+    )
+
+    add_custom_command(TARGET fbeng POST_BUILD
         COMMAND "${CMAKE_COMMAND}" -E copy_if_different
             "${LUAJIT_SRC}/lua51.dll"
             "${PROJECT_BINARY_DIR}/$(Configuration)/lua51.dll"
     )
 
-    add_custom_command(TARGET falcon_behavior_engine POST_BUILD
+    add_custom_command(TARGET fbeng POST_BUILD
         COMMAND "${CMAKE_COMMAND}" -E copy_if_different
-            $<TARGET_FILE:falcon_behavior_engine>
-            "${PROJECT_BINARY_DIR}/$(Configuration)/falcon_behavior_engine.exe"
+            $<TARGET_FILE:fbeng>
+            "${PROJECT_BINARY_DIR}/$(Configuration)/fbeng.exe"
     )
 
-    install(TARGETS falcon_behavior_engine
+    install(TARGETS fbeng
         DESTINATION programs
         COMPONENT "${SYSDIG_COMPONENT_NAME}"
+    )
+
+    install(TARGETS libfbeng
+    LIBRARY DESTINATION lib
+    COMPONENT "${SYSDIG_COMPONENT_NAME}"
     )
 
     install(FILES "${LUAJIT_SRC}/lua51.dll"
